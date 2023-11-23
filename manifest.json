@@ -1,0 +1,10 @@
+{
+  "name": "VOCAYO Extensions",
+  "description": "hope it helps you learn English",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "main.html",
+    "default_icon": "vocayo_logo_1.jpg"
+  }
+}
