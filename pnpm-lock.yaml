@@ -1,0 +1,49 @@
+lockfileVersion: '6.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+devDependencies:
+  '@types/chrome':
+    specifier: ^0.0.244
+    version: 0.0.244
+  chrome-types:
+    specifier: ^0.1.228
+    version: 0.1.228
+  typescript:
+    specifier: ^5.2.2
+    version: 5.2.2
+
+packages:
+
+  /@types/chrome@0.0.244:
+    resolution: {integrity: sha512-pC8kBWuUqGhG6S5d3E44a2f1TA2XHX/sXfCIrrDpA4K65Ozzw3mYQjuvMOTdSUCx4HjJhp4zuZh6fKOH3UdA1g==}
+    dependencies:
+      '@types/filesystem': 0.0.32
+      '@types/har-format': 1.2.12
+    dev: true
+
+  /@types/filesystem@0.0.32:
+    resolution: {integrity: sha512-Yuf4jR5YYMR2DVgwuCiP11s0xuVRyPKmz8vo6HBY3CGdeMj8af93CFZX+T82+VD1+UqHOxTq31lO7MI7lepBtQ==}
+    dependencies:
+      '@types/filewriter': 0.0.29
+    dev: true
+
+  /@types/filewriter@0.0.29:
+    resolution: {integrity: sha512-BsPXH/irW0ht0Ji6iw/jJaK8Lj3FJemon2gvEqHKpCdDCeemHa+rI3WBGq5z7cDMZgoLjY40oninGxqk+8NzNQ==}
+    dev: true
+
+  /@types/har-format@1.2.12:
+    resolution: {integrity: sha512-P20p/YBrqUBmzD6KhIQ8EiY4/RRzlekL4eCvfQnulFPfjmiGxKIoyCeI7qam5I7oKH3P8EU4ptEi0EfyGoLysw==}
+    dev: true
+
+  /chrome-types@0.1.228:
+    resolution: {integrity: sha512-zbq7EJIFYFKD2WEIz6VcWuY21+EnMSFqQZHtF+GCu3OQBwPaG5JDNjSicB1DcSwUdwJO+s7zqxk0OSBUJcuS7Q==}
+    dev: true
+
+  /typescript@5.2.2:
+    resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+    dev: true

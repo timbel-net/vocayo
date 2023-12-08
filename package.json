@@ -1,0 +1,12 @@
+{
+  "name": "vocayo",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "tsc -w"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.244",
+    "chrome-types": "^0.1.228",
+    "typescript": "^5.2.2"
+  }
+}
