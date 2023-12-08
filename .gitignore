@@ -1,2 +1,7 @@
 # Project exclude paths
-/out/
+node_modules
+/out
+.idea
+_metadata
+
+*.iml

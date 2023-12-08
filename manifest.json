@@ -4,10 +4,7 @@
   "description": "Simple vocabulary",
   "version": "0.1",
   "icons": {
-    "16": "assets/icons/16.png",
-    "32": "assets/icons/32.png",
-    "48": "assets/icons/48.png",
-    "128": "assets/icons/128.png"
+    "16": "assets/icons/16.png"
   },
   "action": {},
   "background": {
