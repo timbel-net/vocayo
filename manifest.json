@@ -17,6 +17,9 @@
       ],
       "js": [
         "vocayo-content.js"
+      ],
+      "css": [
+        "vocayo-content.css"
       ]
     }
   ],

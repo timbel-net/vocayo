@@ -1,0 +1,11 @@
+#vocayo-popup {
+    background-color: #eeec;
+    border: 2px solid #000c;
+    display: none;
+    position: fixed;
+    padding: 8px;
+}
+
+#vocayo-popup.open {
+    display: block;
+}
