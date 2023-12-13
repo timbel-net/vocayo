@@ -1,0 +1,23 @@
+.slidev-layout {
+    font-size: 1.5rem;
+}
+.slidev-layout h1 {
+    font-size: 4rem;
+}
+.slidev-layout h2 {
+    font-size: 3rem;
+}
+.slidev-layout h3 {
+    font-size: 2rem;
+}
+.slidev-code-wrapper {
+    font-size: 2rem;
+    min-width: 50%;
+}
+
+.slidev-layout .footnotes {
+    border-top: 1px solid;
+    width: 100%;
+    font-size: .8rem;
+    list-style: decimal;
+}

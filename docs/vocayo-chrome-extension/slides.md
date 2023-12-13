@@ -6,6 +6,7 @@ transition: fade-out
 mdc: true
 page: 1
 ---
+
 # Vocayo
 
 Browser Extension
@@ -18,325 +19,191 @@ Browser Extension
 ---
 transition: slide-left
 ---
+
 # goal
 
-- **공식 문서 읽기** - 새로운 개발 패러다임 접근법
+- **공식 문서 읽기** - 새로운 개발 플랫폼에 접근법
 - **타 서비스 API** - HTTP 를 활용하는 다양한 방법
+- **Serverless** - Cloud Platform 활용
+
+---
+transition: slide-left
+---
+# production
+
+https://github.com/timbel-net/vocayo
+
+<img v-click src="https://raw.githubusercontent.com/timbel-net/vocayo/feat-gwang-yang/docs/vocayo-chrome-extension/sample.gif" />
+
 
 ---
 transition: slide-up
 ---
-# production
-https://github.com/timbel-net/vocayo
+# [manifest.json](https://developer.chrome.com/docs/extensions/reference/manifest?hl=ko)
+
+---
+transition: slide-up
+---
+# service_worker
+```json {5}
+{
+  ...,
+
+  "background": {
+    "service_worker": "vocayo-background.js"
+  }
+}
+```
+<a class="text-sm text-right w-[640px]" href="https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/basics?hl=ko" target="_blank">공식문서</a>
+
+- `service_worker` 웹어플리케이션과 별개로 독립적으로 실행되는 서비스<br>(네이버 사전으로 API 요청을 보내게 될 거에요.)
 
 
 ---
-layout: image
-image: ./sample.gif
+transition: slide-up
+---
+# content_scripts
+```json {5-7}
+{
+  ...,
+
+  "content_scripts": [{
+    "matches": [ "<all_urls>" ],
+    "js": [ "vocayo-content.js" ],
+    "css": [ "vocayo-content.css" ]
+  }]
+}
+```
+<a class="text-sm text-right w-[640px]" href="https://developer.chrome.com/docs/extensions/reference/manifest/content-scripts?hl=ko" target="_blank">공식문서</a>
+
+- `matches` 에 부합되는 URL의 사이트 매칭
+- `js` 매칭된 사이트에서 실행될 javascript
+- `css` 매칭된 사이트에서 실행될 css files
+
+
+---
 transition: slide-left
 ---
+# host_permissions
+```json{5-6}
+{
+  ...,
 
+  "host_permissions": [
+    "https://dict.naver.com/",
+    "https://en.dict.naver.com/"
+  ]
+}
+```
+<a class="text-sm text-right w-[640px]" href="https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions?hl=ko#host-permissions" target="_blank">공식문서</a>
+
+네이버 사전에 API 요청을 보내게 되는 부분에서 [CORS](https://developer.mozilla.org/ko/docs/Web/HTTP/CORS) 등의 문제를 벗어나는데 필요  
 
 ---
 transition: slide-left
 ---
 # implementation
+- Typescript
+  - 손쉬운 API 명세 확인
+  - Intellisense 기능으로 힌트 확인
+  - 미지의 API에 접근을 용이하게 하는 방법
+- [Extensions Reloader](https://chromewebstore.google.com/detail/extensions-reloader/fimgfedafeadlieiabdeeaodndnlbhid)
+  - 브라우저 확장프로그램 개발 지원
 
-### `code` and `guide`
+---
+transition: slide-up
+---
+# vocayo-background.ts
+```ts{0|3-5|7}
+// vocayo-background.ts
+chrome.runtime.onMessage.addListener((keyword: string, _, response: (json?: any) => void) => {
+    fetch(`https://en.dict.naver.com/api3/enko/search?m=mobile&lang=ko&query=${keyword}`)
+        .then(resp => resp.json())
+        .then(json => response(json))
 
-Use code snippets and get the highlighting directly![^1]
-
-```json {all|2|1-6|9|all}
-
+    return true
+})
 ```
+<a class="text-sm text-right w-[1100px]" href="https://developer.chrome.com/docs/extensions/reference/api/runtime?hl=ko#event-onMessage" target="_blank">공식문서</a>
 
-<arrow v-click="[3, 4]" x1="400" y1="420" x2="230" y2="330" color="#564" width="3" arrowSize="1" />
+네이버 사전 API에 요청을 보내고 응답을 받아요.
+<div v-click>⚠️ 비동기 응답을 위해선 이벤트 함수가 <code>return true</code> 를 반환
+<a href="https://developer.chrome.com/docs/extensions/develop/concepts/messaging?hl=ko" target="_blank">[참조]</a>
+</div>
 
-[^1]: [Learn More](https://sli.dev/guide/syntax.html#line-highlighting)
 
-<style>
-.footnotes-sep {
-  @apply mt-20 opacity-10;
+---
+transition: slide-up
+---
+# vocayo-content.ts
+```ts{0|2|8|9-10}
+// vocayo-content.ts
+const {anchorNode, anchorOffset: start, focusNode, focusOffset: close} = document.getSelection()!
+
+if (anchorNode === focusNode) {
+    const keyword = anchorNode?.textContent?.substring(start, close)?.trim()
+
+    if (isWord(keyword)) {
+        const response: Response = await chrome.runtime.sendMessage(keyword)
+        const contents = response?.searchResultMap?.searchResultListMap.WORD.items
+            .map(item => item.meansCollector[0].means[0].value).join('<hr/>')
+
+        if (contents) {
+            openPopup(contents, e.clientX, e.clientY)
+        }
+    }
 }
-.footnotes {
-  @apply text-sm opacity-75;
-}
-.footnote-backref {
-  display: none;
-}
-</style>
-
----
-
-# Components
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-You can use Vue components directly inside your slides.
-
-We have provided a few built-in components like `<Tweet/>` and `<Youtube/>` that you can use directly. And adding your custom components is also super easy.
-
-```html
-<Counter :count="10" />
 ```
+<a class="text-sm text-right w-[1100px]" href="https://developer.chrome.com/docs/extensions/reference/api/runtime?hl=ko#method-sendMessage" target="_blank">공식문서</a>
 
-<!-- ./components/Counter.vue -->
-<Counter :count="10" m="t-4" />
 
-Check out [the guides](https://sli.dev/builtin/components.html) for more.
+- <div v-click="1">사이트에서 마우스로 선택된 텍스트를 읽어 들임<a><sup href="https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment" target="_blank">구조분해할당</sup></a></div>
+- <div v-click="2">vocayo-background.js에 <code>onMessage</code>로 키워드 전달</div>
+- <div v-click="3">응답 받은 내용 구성 (타입정의 NaverDictionary.d.ts)</div> 
 
-</div>
-<div>
 
-```html
-<Tweet id="1390115482657726468" />
+---
+transition: slide-left
+---
+# vocayo-content.ts
+```ts{0|9-17}
+// vocayo-content.ts
+const openPopup = (() => {
+    const popup = document.createElement('div')
+    popup.id = 'vocayo-popup'
+
+    document.body.append(popup)
+
+    return (content: string, x: number, y: number) => {
+        popup.innerHTML = content
+        popup.style.left = `${x}px`
+        popup.style.top = `${y}px`
+        popup.classList.add('open')
+
+        document.body.addEventListener('mousedown', function closePopup() {
+            document.body.removeEventListener('mousedown', closePopup)
+            popup.classList.remove('open')
+        })
+    }
+})()
 ```
+<a class="text-sm text-right w-[900px]" href="https://developer.chrome.com/docs/extensions/reference/api/runtime?hl=ko#method-sendMessage" target="_blank">공식문서</a>
 
-<Tweet id="1390115482657726468" scale="0.65" />
-
-</div>
-</div>
-
-<!--
-Presenter note with **bold**, *italic*, and ~~striked~~ text.
-
-Also, HTML elements are valid:
-<div class="flex w-full">
-  <span style="flex-grow: 1;">Left content</span>
-  <span>Right content</span>
-</div>
--->
+- <div>사이트에서 결과 보여주기</div>
+- <div v-click="1"><a href="https://developer.mozilla.org/ko/docs/Web/JavaScript/Closures" target="_blank">클로저</a> 패턴으로 구현</div>
 
 
 ---
-class: px-20
+transition: fade
 ---
+# conclusion
+- earning
+  - 새로운 개발 플랫폼에 대한 접근법
+- be desired
+  - 목표했던 Serverless 를 활용하지 못함
+  - 어쩌면 필요없는 플랫폼 지식 축적으로... 🤯 
 
-# Themes
-
-Slidev comes with powerful theming support. Themes can provide styles, layouts, components, or even configurations for tools. Switching between themes by just **one edit** in your frontmatter:
-
-<div grid="~ cols-2 gap-2" m="t-2">
-
-```yaml
----
-theme: default
----
-```
-
-```yaml
----
-theme: seriph
----
-```
-
-<img border="rounded" src="https://github.com/slidevjs/themes/blob/main/screenshots/theme-default/01.png?raw=true" alt="">
-
-<img border="rounded" src="https://github.com/slidevjs/themes/blob/main/screenshots/theme-seriph/01.png?raw=true" alt="">
-
-</div>
-
-Read more about [How to use a theme](https://sli.dev/themes/use.html) and
-check out the [Awesome Themes Gallery](https://sli.dev/themes/gallery.html).
 
 ---
-preload: false
 ---
-
-# Animations
-
-Animations are powered by [@vueuse/motion](https://motion.vueuse.org/).
-
-```html
-<div
-  v-motion
-  :initial="{ x: -80 }"
-  :enter="{ x: 0 }">
-  Slidev
-</div>
-```
-
-<div class="w-60 relative mt-6">
-  <div class="relative w-40 h-40">
-    <img
-      v-motion
-      :initial="{ x: 800, y: -100, scale: 1.5, rotate: -50 }"
-      :enter="final"
-      class="absolute top-0 left-0 right-0 bottom-0"
-      src="https://sli.dev/logo-square.png"
-      alt=""
-    />
-    <img
-      v-motion
-      :initial="{ y: 500, x: -100, scale: 2 }"
-      :enter="final"
-      class="absolute top-0 left-0 right-0 bottom-0"
-      src="https://sli.dev/logo-circle.png"
-      alt=""
-    />
-    <img
-      v-motion
-      :initial="{ x: 600, y: 400, scale: 2, rotate: 100 }"
-      :enter="final"
-      class="absolute top-0 left-0 right-0 bottom-0"
-      src="https://sli.dev/logo-triangle.png"
-      alt=""
-    />
-  </div>
-
-  <div
-    class="text-5xl absolute top-14 left-40 text-[#2B90B6] -z-1"
-    v-motion
-    :initial="{ x: -80, opacity: 0}"
-    :enter="{ x: 0, opacity: 1, transition: { delay: 2000, duration: 1000 } }">
-    Slidev
-  </div>
-</div>
-
-<!-- vue script setup scripts can be directly used in markdown, and will only affects current page -->
-<script setup lang="ts">
-const final = {
-  x: 0,
-  y: 0,
-  rotate: 0,
-  scale: 1,
-  transition: {
-    type: 'spring',
-    damping: 10,
-    stiffness: 20,
-    mass: 2
-  }
-}
-</script>
-
-<div
-  v-motion
-  :initial="{ x:35, y: 40, opacity: 0}"
-  :enter="{ y: 0, opacity: 1, transition: { delay: 3500 } }">
-
-[Learn More](https://sli.dev/guide/animations.html#motion)
-
-</div>
-
----
-
-# LaTeX
-
-LaTeX is supported out-of-box powered by [KaTeX](https://katex.org/).
-
-<br>
-
-Inline $\sqrt{3x-1}+(1+x)^2$
-
-Block
-$$ {1|3|all}
-\begin{array}{c}
-
-\nabla \times \vec{\mathbf{B}} -\, \frac1c\, \frac{\partial\vec{\mathbf{E}}}{\partial t} &
-= \frac{4\pi}{c}\vec{\mathbf{j}}    \nabla \cdot \vec{\mathbf{E}} & = 4 \pi \rho \\
-
-\nabla \times \vec{\mathbf{E}}\, +\, \frac1c\, \frac{\partial\vec{\mathbf{B}}}{\partial t} & = \vec{\mathbf{0}} \\
-
-\nabla \cdot \vec{\mathbf{B}} & = 0
-
-\end{array}
-$$
-
-<br>
-
-[Learn more](https://sli.dev/guide/syntax#latex)
-
----
-
-# Diagrams
-
-You can create diagrams / graphs from textual descriptions, directly in your Markdown.
-
-<div class="grid grid-cols-4 gap-5 pt-4 -mb-6">
-
-```mermaid {scale: 0.5, alt: 'A simple sequence diagram'}
-sequenceDiagram
-    Alice->John: Hello John, how are you?
-    Note over Alice,John: A typical interaction
-```
-
-```mermaid {theme: 'neutral', scale: 0.8}
-graph TD
-B[Text] --> C{Decision}
-C -->|One| D[Result 1]
-C -->|Two| E[Result 2]
-```
-
-```mermaid
-mindmap
-  root((mindmap))
-    Origins
-      Long history
-      ::icon(fa fa-book)
-      Popularisation
-        British popular psychology author Tony Buzan
-    Research
-      On effectivness<br/>and features
-      On Automatic creation
-        Uses
-            Creative techniques
-            Strategic planning
-            Argument mapping
-    Tools
-      Pen and paper
-      Mermaid
-```
-
-```plantuml {scale: 0.7}
-@startuml
-
-package "Some Group" {
-  HTTP - [First Component]
-  [Another Component]
-}
-
-node "Other Groups" {
-  FTP - [Second Component]
-  [First Component] --> FTP
-}
-
-cloud {
-  [Example 1]
-}
-
-
-database "MySql" {
-  folder "This is my folder" {
-    [Folder 3]
-  }
-  frame "Foo" {
-    [Frame 4]
-  }
-}
-
-
-[Another Component] --> [Example 1]
-[Example 1] --> [Folder 3]
-[Folder 3] --> [Frame 4]
-
-@enduml
-```
-
-</div>
-
-[Learn More](https://sli.dev/guide/syntax.html#diagrams)
-
----
-src: ./pages/multiple-entries.md
-hide: false
----
-
----
-layout: center
-class: text-center
----
-
-# Learn More
-
-[Documentations](https://sli.dev) · [GitHub](https://github.com/slidevjs/slidev) · [Showcases](https://sli.dev/showcases.html)
+# End.
